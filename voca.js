@@ -1,35 +1,226 @@
-const speakText = (text) => {
+let wordData = [];
+let isKoHidden = false;
+
+let currentWords = [];
+let isPlayingAll = false;
+let currentPlayIndex = 0;
+
+// 모바일 브라우저 음성 목록 저장을 위한 변수 추가
+let availableVoices = [];
+
+const mainScreen = document.getElementById('mainScreen');
+const studyScreen = document.getElementById('studyScreen');
+const dayGrid = document.getElementById('dayGrid');
+const wordListContainer = document.getElementById('wordList');
+const studyTitle = document.getElementById('studyTitle');
+const toggleBtn = document.getElementById('toggleBtn');
+const backBtn = document.getElementById('backBtn');
+const playAllBtn = document.getElementById('playAllBtn');
+const delaySelect = document.getElementById('delaySelect');
+const langSelect = document.getElementById('langSelect');
+const goToTopBtn = document.getElementById('goToTopBtn');
+
+// --- [추가됨] 음성 목록 미리 로드하기 ---
+function populateVoices() {
+    availableVoices = window.speechSynthesis.getVoices();
+}
+// 브라우저가 음성 합성을 지원하면 목록 로드 시도
+if (window.speechSynthesis) {
+    populateVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = populateVoices;
+    }
+}
+// ----------------------------------------
+
+async function loadData() {
+    try {
+        const response = await fetch('voca.json');
+        wordData = await response.json();
+        initMainScreen();
+    } catch (e) {
+        dayGrid.innerHTML = `<p style="grid-column:1/-1; text-align:center; font-size:0.8rem; color:red;">JSON 데이터를 불러올 수 없습니다.</p>`;
+    }
+}
+
+function initMainScreen() {
+    const uniqueDays = [...new Set(wordData.map(i => i.day))].sort((a, b) => a - b);
+    dayGrid.innerHTML = '';
+    uniqueDays.forEach(day => {
+        const btn = document.createElement('div');
+        btn.className = 'day-btn';
+        btn.textContent = `Day ${day}`;
+        btn.onclick = () => openStudyScreen(day);
+        dayGrid.appendChild(btn);
+    });
+}
+
+function openStudyScreen(day) {
+    mainScreen.classList.remove('active');
+    studyScreen.classList.add('active');
+    studyTitle.textContent = `Day ${day}`;
+    isKoHidden = false;
+    currentPlayIndex = 0;
+    
+    currentWords = wordData.filter(i => i.day === day);
+    renderWords(currentWords);
+    resetPlayAll();
+}
+
+backBtn.onclick = () => {
+    window.speechSynthesis.cancel();
+    resetPlayAll();
+    studyScreen.classList.remove('active');
+    mainScreen.classList.add('active');
+};
+
+function renderWords(words) {
+    wordListContainer.innerHTML = '';
+    words.forEach(item => {
+        const wordItem = document.createElement('div');
+        wordItem.className = `word-item level-${item.level}`;
+        wordItem.innerHTML = `<div class="en-box">${item.en}</div><div class="ko-box">${item.ko}</div>`;
+        wordListContainer.appendChild(wordItem);
+    });
+}
+
+toggleBtn.onclick = () => {
+    isKoHidden = !isKoHidden;
+    toggleBtn.textContent = isKoHidden ? '한국어 보이기' : '한국어 가리기';
+    toggleBtn.classList.toggle('active', isKoHidden);
+    document.querySelectorAll('.ko-box').forEach(el => el.classList.toggle('hidden', isKoHidden));
+};
+
+wordListContainer.onclick = (e) => {
+    const wordItem = e.target.closest('.word-item');
+    if (!wordItem) return;
+
+    const wordElements = Array.from(document.querySelectorAll('.word-item'));
+    const clickedIndex = wordElements.indexOf(wordItem);
+
+    if (e.target.classList.contains('en-box')) {
+        currentPlayIndex = clickedIndex; 
+        highlightWord(clickedIndex);
+        speak(e.target.innerText);
+    }
+    
+    if (e.target.classList.contains('ko-box') && isKoHidden) {
+        e.target.classList.toggle('hidden');
+    }
+};
+
+function highlightWord(index) {
+    const wordElements = document.querySelectorAll('.word-item');
+    wordElements.forEach(el => el.classList.remove('playing-now'));
+    
+    const currentEl = wordElements[index];
+    if (currentEl) {
+        currentEl.classList.add('playing-now');
+        currentEl.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+    }
+}
+
+playAllBtn.onclick = () => {
+    if (isPlayingAll) {
+        window.speechSynthesis.cancel();
+        resetPlayAll();
+    } else {
+        isPlayingAll = true;
+        playAllBtn.textContent = '■ 재생 중지';
+        playAllBtn.classList.add('playing');
+        playNextWord();
+    }
+};
+
+function playNextWord() {
+    if (!isPlayingAll || currentPlayIndex >= currentWords.length) {
+        resetPlayAll();
+        return;
+    }
+
+    highlightWord(currentPlayIndex);
+
+    const text = currentWords[currentPlayIndex].en;
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // --- [수정됨] 언어 및 보이스 명시적 할당 ---
+    const selectedLang = langSelect.value || 'en-US';
+    utterance.lang = selectedLang;
+    
+    if (availableVoices.length > 0) {
+        const voice = availableVoices.find(v => v.lang.includes(selectedLang) || v.lang.includes(selectedLang.replace('-', '_')));
+        if (voice) utterance.voice = voice;
+    }
+    // -------------------------------------------
+    
+    utterance.onend = () => {
+        currentPlayIndex++;
+        const delayMs = parseInt(delaySelect.value, 10);
+        setTimeout(playNextWord, delayMs); 
+    };
+
+    utterance.onerror = (e) => {
+        console.warn('Speech error:', e);
+        currentPlayIndex++;
+        playNextWord();
+    };
+
+    window.speechSynthesis.speak(utterance);
+}
+
+// --- [수정됨] 중복 선언된 resetPlayAll 함수를 하나로 통합 ---
+function resetPlayAll() {
+    isPlayingAll = false;
+    if (playAllBtn) {
+        playAllBtn.textContent = '▶ 전체 재생';
+        playAllBtn.classList.remove('playing');
+    }
+    document.querySelectorAll('.word-item').forEach(el => el.classList.remove('playing-now'));
+}
+// -----------------------------------------------------------
+
+function speak(text) {
+    if (isPlayingAll) {
+        resetPlayAll();
+    }
+    
     if (!window.speechSynthesis) {
         alert("이 브라우저는 음성 합성을 지원하지 않습니다.");
         return;
     }
 
-    // 1. 현재 진행 중인 음성이 있다면 중지 (카카오톡 내 충돌 방지)
     window.speechSynthesis.cancel();
-
     const utterance = new SpeechSynthesisUtterance(text);
-    
-    // 2. 한국어 설정 (카카오톡 내 기본값 이슈 방지)
-    utterance.lang = 'ko-KR';
-    utterance.rate = 1.0; // 속도
-    utterance.pitch = 1.0; // 음높이
 
-    // 3. 음성 목록 로드 확인 후 실행
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length === 0) {
-        // 음성이 아직 로드되지 않았다면 이벤트를 기다림
-        window.speechSynthesis.onvoiceschanged = () => {
-            const updatedVoices = window.speechSynthesis.getVoices();
-            utterance.voice = updatedVoices.find(v => v.lang.includes('ko')) || updatedVoices[0];
-            window.speechSynthesis.speak(utterance);
-        };
+    // --- [수정됨] 언어 및 보이스 명시적 할당 ---
+    const selectedLang = langSelect.value || 'en-US';
+    utterance.lang = selectedLang; 
+    
+    if (availableVoices.length > 0) {
+        const voice = availableVoices.find(v => v.lang.includes(selectedLang) || v.lang.includes(selectedLang.replace('-', '_')));
+        if (voice) utterance.voice = voice;
+    }
+    // -------------------------------------------
+    
+    window.speechSynthesis.speak(utterance);
+}
+
+window.onscroll = function() {
+    if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+        goToTopBtn.classList.add('show');
     } else {
-        utterance.voice = voices.find(v => v.lang.includes('ko')) || voices[0];
-        window.speechSynthesis.speak(utterance);
+        goToTopBtn.classList.remove('show');
     }
 };
 
-// 사용 예시: 반드시 버튼 클릭 같은 '직접적인' 이벤트 내부에서 실행
-document.getElementById('speakBtn').addEventListener('click', () => {
-    speakText("안녕하세요, 카카오톡에서도 목소리가 들리나요?");
-});
+goToTopBtn.onclick = function() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+};
+
+loadData();
