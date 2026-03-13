@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <title>모바일 영어 단어장</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="모바일 영어 단어장" />
+        <meta property="og:description" content="너무 어렵다...ㅠㅠ" />
+        <meta property="og:image" content="https://lh3.googleusercontent.com/pw/AP1GczPdUg9U4WabZFxMYFrT9nlx_yAwHpptzwXz7Z7MZxa7W02g1O6dFUX8jvxABjGaAYWmD5-f55KbigTizqE66Feh9htB7t2H0eFgns3DXomZxwOmafIvUdiBfa7AA4ctkfX6FR08Kxw8Sw6Hn33gjzxg" />
+        <link rel="shortcut icon" href="https://lh3.googleusercontent.com/pw/AP1GczMbpSX92DIho7-vZydv18Kj0pUeJiPlHMEiF9V6ufXZ7j-MpbH7d_YmXn_WfpT3DNR3uHVlfOYvpzaxifVa7EY0Eq1mJn8Rq8_sueAC7E58jZpTLiaju3BG_--TRK-bE9bRDF_OXBH5JSwC0rDuh6XK" />
+        <link rel="icon" href="https://lh3.googleusercontent.com/pw/AP1GczMbpSX92DIho7-vZydv18Kj0pUeJiPlHMEiF9V6ufXZ7j-MpbH7d_YmXn_WfpT3DNR3uHVlfOYvpzaxifVa7EY0Eq1mJn8Rq8_sueAC7E58jZpTLiaju3BG_--TRK-bE9bRDF_OXBH5JSwC0rDuh6XK" />
+        <link rel="stylesheet" type="text/css" href="voca.css" />
+    </head>
+    <body>
+        <div id="mainScreen" class="screen active">
+            <h1 class="main-title">모바일 영어 단어장</h1>
+            <div class="day-grid" id="dayGrid"></div>
+        </div>
+        <div id="studyScreen" class="screen">
+<div class="header">
+    <button id="backBtn" class="btn back-btn">← 뒤로</button>
+    <div class="study-title" id="studyTitle">Day 1</div>
+    <button id="toggleBtn" class="btn toggle-btn">한국어 가리기</button>
+<div class="play-controls">
+    <select id="langSelect" class="delay-select">
+        <option value="en-US" selected>미국식</option>
+        <option value="en-GB">영국식</option>
+        <option value="en-AU">호주식</option>
+    </select>
+
+    <select id="delaySelect" class="delay-select">
+        <option value="200">0.2초</option>
+        <option value="400">0.4초</option>
+        <option value="600" selected>0.6초</option>
+        <option value="800">0.8초</option>
+        <option value="1000">1.0초</option>
+    </select>
+    <button id="playAllBtn" class="btn play-btn">▶ 전체 재생</button>
+</div>
+</div>
+            <div class="word-list" id="wordList"></div>
+        </div>
+        <button id="goToTopBtn" class="go-to-top">↑</button>
+        <script src="voca.js"></script>
+    </body>
+</html>
