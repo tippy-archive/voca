@@ -53,6 +53,40 @@ function initMainScreen() {
         btn.onclick = () => openStudyScreen(day);
         dayGrid.appendChild(btn);
     });
+
+renderTodaySection(uniqueDays);
+
+    dayGrid.innerHTML = '';
+    uniqueDays.forEach(day => {
+        const btn = document.createElement('div');
+        btn.className = 'day-btn';
+        btn.textContent = `Day ${day}`;
+        btn.onclick = () => openStudyScreen(day);
+        dayGrid.appendChild(btn);
+    });
+}
+
+function renderTodaySection(uniqueDays) {
+    const todaySection = document.getElementById('todaySection');
+    const todayDate = new Date().getDate(); // 현재 접속한 날의 일(Day) 가져오기 (1~31)
+
+    let contentHTML = `<div class="today-title">📅 오늘의 단어</div>`;
+    
+    if (todayDate === 31) {
+        // 31일인 경우
+        contentHTML += `<button class="today-btn rest-day">오늘은 쉬는날 🎉</button>`;
+        todaySection.innerHTML = contentHTML;
+    } else {
+        // 해당 Day의 데이터가 json에 실제로 존재하는지 안전장치 확인
+        const isDataExist = uniqueDays.includes(todayDate);
+        
+        if (isDataExist) {
+            contentHTML += `<button class="today-btn" onclick="openStudyScreen(${todayDate})">Day ${todayDate} 바로가기 ▶</button>`;
+        } else {
+            contentHTML += `<button class="today-btn rest-day">Day ${todayDate} 단어 준비 중</button>`;
+        }
+        todaySection.innerHTML = contentHTML;
+    }
 }
 
 function openStudyScreen(day) {
