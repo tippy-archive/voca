@@ -162,6 +162,10 @@ playAllBtn.onclick = () => {
         window.speechSynthesis.cancel();
         resetPlayAll();
     } else {
+        if (currentPlayIndex >= currentWords.length) {
+            currentPlayIndex = 0;
+        }
+
         isPlayingAll = true;
         playAllBtn.textContent = '■ 재생 중지';
         playAllBtn.classList.add('playing');
