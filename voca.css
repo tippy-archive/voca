@@ -234,7 +234,7 @@ body {
 .word-item.playing-now {
     border: 2px solid #ff9800 !important; /* 주황색 테두리 */
     background-color: #fff3e0 !important; /* 아주 연한 주황색 배경 */
-    transform: scale(1.02); /* 살짝 커지는 효과 유지 */
+    transform: scale(1.00); /* 해당 word 사이즈 */
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2); /* 은은한 주황색 그림자 */
     z-index: 1;
