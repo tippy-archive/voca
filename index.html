@@ -13,33 +13,37 @@
         <link rel="stylesheet" type="text/css" href="voca.css" />
     </head>
     <body>
-<div id="mainScreen" class="screen active">
+        <div id="mainScreen" class="screen active">
             <h1 class="main-title">모바일 영어 단어장</h1>
             <div id="todaySection" class="today-section"></div>
             <div class="day-grid" id="dayGrid"></div>
+            <div class="settings-section" style="margin-top: 40px; padding: 20px; border-top: 1px dashed #ddd; text-align: center;">
+                <p style="color: #888; font-size: 0.85rem; margin-bottom: 10px;">학습 데이터 관리</p>
+                <button id="resetDataBtn" class="btn reset-btn">모든 체크 초기화</button>
+            </div>
         </div>
         <div id="studyScreen" class="screen">
-<div class="header">
-    <button id="backBtn" class="btn back-btn">← 뒤로</button>
-    <div class="study-title" id="studyTitle">Day 1</div>
-    <button id="toggleBtn" class="btn toggle-btn">한국어 가리기</button>
-<div class="play-controls">
-    <select id="langSelect" class="delay-select">
-        <option value="en-US" selected>미국식</option>
-        <option value="en-GB">영국식</option>
-        <option value="en-AU">호주식</option>
-    </select>
-
-    <select id="delaySelect" class="delay-select">
-        <option value="200">0.2초</option>
-        <option value="400">0.4초</option>
-        <option value="600" selected>0.6초</option>
-        <option value="800">0.8초</option>
-        <option value="1000">1.0초</option>
-    </select>
-    <button id="playAllBtn" class="btn play-btn">▶ 전체 재생</button>
-</div>
-</div>
+            <div class="header">
+                <button id="backBtn" class="btn back-btn">← 뒤로</button>
+                <div class="study-title" id="studyTitle">Day 1</div>
+                <button id="filterUnknownBtn" class="btn filter-btn">모르는 단어</button>
+                <button id="toggleBtn" class="btn toggle-btn">한국어 가리기</button>
+                <div class="play-controls">
+                    <select id="langSelect" class="delay-select">
+                        <option value="en-US" selected>미국식</option>
+                        <option value="en-GB">영국식</option>
+                        <option value="en-AU">호주식</option>
+                    </select>
+                    <select id="delaySelect" class="delay-select">
+                        <option value="200">0.2초</option>
+                        <option value="400">0.4초</option>
+                        <option value="600" selected>0.6초</option>
+                        <option value="800">0.8초</option>
+                        <option value="1000">1.0초</option>
+                    </select>
+                    <button id="playAllBtn" class="btn play-btn">▶ 전체 재생</button>
+                </div>
+            </div>
             <div class="word-list" id="wordList"></div>
         </div>
         <button id="goToTopBtn" class="go-to-top">↑</button>
