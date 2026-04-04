@@ -5,7 +5,7 @@ let activeWords = [];
 let isPlayingAll = false;
 let currentPlayIndex = 0;
 let availableVoices = [];
-let unknownWords = JSON.parse(localStorage.getItem('unknownWords')) || {}; // { "apple": true, "banana": true } 형식
+let unknownWords = JSON.parse(localStorage.getItem('unknownWords')) || {};
 let isFilterMode = false;
 
 const mainScreen = document.getElementById('mainScreen');
@@ -331,7 +331,7 @@ if (collectBtn) {
 filterUnknownBtn.onclick = () => {
     isFilterMode = !isFilterMode;
     filterUnknownBtn.classList.toggle('active', isFilterMode);
-    filterUnknownBtn.textContent = isFilterMode ? '전체 보기' : '모른 단어만';
+    filterUnknownBtn.textContent = isFilterMode ? '전체 보기' : '모르는 단어';
 
     renderWords(currentWords);
     resetPlayAll();
@@ -356,7 +356,7 @@ toggleBtn.onclick = () => {
 if (resetDataBtn) {
     resetDataBtn.onclick = () => {
         const confirmReset = confirm(
-            "별표(⭐) 표시한 모든 '모른 단어' 기록이 삭제됩니다.\n정말로 초기화하시겠습니까?"
+            "별표(⭐) 표시한 모든 '모르는 단어' 기록이 삭제됩니다.\n정말로 초기화하시겠습니까?"
         );
 
         if (confirmReset) {
