@@ -69,7 +69,7 @@ async function loadData() {
 }
 
 function initMainScreen() {
-    const uniqueDays = [...new Set(wordData.map(i => i.d))].sort((a, b) => a - b);
+    const uniqueDays = [...new Set(wordData.map(i => i.d))].filter(Boolean).sort((a, b) => a - b);
     dayGrid.innerHTML = '';
     uniqueDays.forEach(day => {
         const btn = document.createElement('div');
@@ -81,7 +81,7 @@ function initMainScreen() {
 
     renderTodaySection(uniqueDays);
 
-    const uniqueGrammars = [...new Set(grammarData.map(i => i.p))].sort((a, b) => a - b);
+    const uniqueGrammars = [...new Set(grammarData.map(i => i.p))].filter(Boolean).sort((a, b) => a - b);
     grammarGrid.innerHTML = '';
     uniqueGrammars.forEach(p => {
         const btn = document.createElement('div');
@@ -91,7 +91,7 @@ function initMainScreen() {
         grammarGrid.appendChild(btn);
     });
 
-    const uniqueTests = [...new Set(testData.map(i => i.t))].sort((a, b) => a - b);
+    const uniqueTests = [...new Set(testData.map(i => i.t))].filter(Boolean).sort((a, b) => a - b);
     testGrid.innerHTML = '';
     uniqueTests.forEach(t => {
         const btn = document.createElement('div');
