@@ -1,4 +1,7 @@
 let wordData = [];
+let grammarData = [];
+let testData = [];
+
 let isKoHidden = false;
 let currentWords = [];
 let activeWords = [];
@@ -11,6 +14,8 @@ let isFilterMode = false;
 const mainScreen = document.getElementById('mainScreen');
 const studyScreen = document.getElementById('studyScreen');
 const dayGrid = document.getElementById('dayGrid');
+const grammarGrid = document.getElementById('grammarGrid');
+const testGrid = document.getElementById('testGrid');
 const wordListContainer = document.getElementById('wordList');
 const studyTitle = document.getElementById('studyTitle');
 const toggleBtn = document.getElementById('toggleBtn');
@@ -22,6 +27,18 @@ const goToTopBtn = document.getElementById('goToTopBtn');
 const collectBtn = document.getElementById('collectBtn');
 const filterUnknownBtn = document.getElementById('filterUnknownBtn');
 const resetDataBtn = document.getElementById('resetDataBtn');
+
+function getLevelClass(level) {
+    const levelMap = {
+        1: 'easy',
+        2: 'normal',
+        3: 'hard',
+        '1': 'easy',
+        '2': 'normal',
+        '3': 'hard'
+    };
+    return levelMap[level] || 'easy';
+}
 
 function populateVoices() {
     availableVoices = window.speechSynthesis.getVoices();
@@ -35,8 +52,16 @@ if (window.speechSynthesis) {
 
 async function loadData() {
     try {
-        const response = await fetch('voca.json');
-        wordData = await response.json();
+        const [vocaRes, grammarRes, testRes] = await Promise.all([
+            fetch('voca.json').then(res => res.json()).catch(() => []),
+            fetch('grammar.json').then(res => res.json()).catch(() => []),
+            fetch('test.json').then(res => res.json()).catch(() => [])
+        ]);
+
+        wordData = vocaRes;
+        grammarData = grammarRes;
+        testData = testRes;
+
         initMainScreen();
     } catch (e) {
         dayGrid.innerHTML = `<p style="grid-column:1/-1; text-align:center; font-size:0.8rem; color:red;">JSON 데이터를 불러올 수 없습니다.</p>`;
@@ -44,25 +69,36 @@ async function loadData() {
 }
 
 function initMainScreen() {
-    const uniqueDays = [...new Set(wordData.map(i => i.day))].sort((a, b) => a - b);
+    const uniqueDays = [...new Set(wordData.map(i => i.d))].sort((a, b) => a - b);
     dayGrid.innerHTML = '';
     uniqueDays.forEach(day => {
         const btn = document.createElement('div');
         btn.className = 'day-btn';
         btn.textContent = `Day ${day}`;
-        btn.onclick = () => openStudyScreen(day);
+        btn.onclick = () => openStudyScreen('Day', day, wordData, 'd');
         dayGrid.appendChild(btn);
     });
 
     renderTodaySection(uniqueDays);
 
-    dayGrid.innerHTML = '';
-    uniqueDays.forEach(day => {
+    const uniqueGrammars = [...new Set(grammarData.map(i => i.p))].sort((a, b) => a - b);
+    grammarGrid.innerHTML = '';
+    uniqueGrammars.forEach(p => {
         const btn = document.createElement('div');
         btn.className = 'day-btn';
-        btn.textContent = `Day ${day}`;
-        btn.onclick = () => openStudyScreen(day);
-        dayGrid.appendChild(btn);
+        btn.textContent = `Part ${p}`;
+        btn.onclick = () => openStudyScreen('Part', p, grammarData, 'p');
+        grammarGrid.appendChild(btn);
+    });
+
+    const uniqueTests = [...new Set(testData.map(i => i.t))].sort((a, b) => a - b);
+    testGrid.innerHTML = '';
+    uniqueTests.forEach(t => {
+        const btn = document.createElement('div');
+        btn.className = 'day-btn';
+        btn.textContent = `Test ${t}`;
+        btn.onclick = () => openStudyScreen('Test', t, testData, 't');
+        testGrid.appendChild(btn);
     });
 }
 
@@ -79,7 +115,7 @@ function renderTodaySection(uniqueDays) {
         const isDataExist = uniqueDays.includes(todayDate);
 
         if (isDataExist) {
-            contentHTML += `<button class="today-btn" onclick="openStudyScreen(${todayDate})">Day ${todayDate} 바로가기 ▶</button>`;
+            contentHTML += `<button class="today-btn" onclick="openStudyScreen('Day', ${todayDate}, wordData, 'd')">Day ${todayDate} 바로가기 ▶</button>`;
         } else {
             contentHTML += `<button class="today-btn rest-day">Day ${todayDate} 단어 준비 중</button>`;
         }
@@ -87,10 +123,10 @@ function renderTodaySection(uniqueDays) {
     }
 }
 
-function openStudyScreen(day) {
+function openStudyScreen(prefix, id, dataList, keyName) {
     mainScreen.classList.remove('active');
     studyScreen.classList.add('active');
-    studyTitle.textContent = `Day ${day}`;
+    studyTitle.textContent = `${prefix} ${id}`;
     isKoHidden = false;
     currentPlayIndex = 0;
 
@@ -98,7 +134,7 @@ function openStudyScreen(day) {
     toggleBtn.textContent = '한국어 가리기';
     toggleBtn.classList.remove('active');
 
-    currentWords = wordData.filter(i => i.day === day);
+    currentWords = dataList.filter(i => i[keyName] === id);
     activeWords = [...currentWords];
     renderWords(activeWords);
     resetPlayAll();
@@ -119,14 +155,15 @@ function renderWords(words) {
         words;
 
     if (displayWords.length === 0 && isFilterMode) {
-        wordListContainer.innerHTML = '<p style="text-align:center; padding:20px;">체크된 단어가 없습니다.</p>';
+        wordListContainer.innerHTML = '<p style="text-align:center; padding:20px;">체크된 항목이 없습니다.</p>';
         return;
     }
 
     displayWords.forEach(item => {
         const isChecked = unknownWords[item.en] ? '⭐' : '☆';
         const wordItem = document.createElement('div');
-        wordItem.className = `word-item level-${item.level}`;
+        const levelClass = getLevelClass(item.l || 1);
+        wordItem.className = `word-item level-${levelClass}`;
 
         const hiddenClass = isKoHidden ? 'hidden' : '';
 
@@ -146,17 +183,14 @@ toggleBtn.onclick = () => {
     toggleBtn.textContent = isKoHidden ? '한국어 보이기' : '한국어 가리기';
     toggleBtn.classList.toggle('active', isKoHidden);
 
-    if (isKoHidden) {
-        document.querySelectorAll('.ko-box').forEach(el => el.classList.add('hidden'));
-        if (collectBtn) collectBtn.style.display = 'block';
-    } else {
-        activeWords = [...currentWords];
-        renderWords(activeWords);
-        if (collectBtn) collectBtn.style.display = 'none';
+    if (!isKoHidden) {
+        isFilterMode = false;
+        filterUnknownBtn.classList.remove('active');
+        filterUnknownBtn.textContent = '모르는 단어';
     }
 
+    renderWords(currentWords);
     resetPlayAll();
-    currentPlayIndex = 0;
 };
 
 wordListContainer.onclick = (e) => {
@@ -336,21 +370,6 @@ filterUnknownBtn.onclick = () => {
     renderWords(currentWords);
     resetPlayAll();
     currentPlayIndex = 0;
-};
-
-toggleBtn.onclick = () => {
-    isKoHidden = !isKoHidden;
-    toggleBtn.textContent = isKoHidden ? '한국어 보이기' : '한국어 가리기';
-    toggleBtn.classList.toggle('active', isKoHidden);
-
-    if (!isKoHidden) {
-        isFilterMode = false;
-        filterUnknownBtn.classList.remove('active');
-        filterUnknownBtn.textContent = '모르는 단어';
-    }
-
-    renderWords(currentWords);
-    resetPlayAll();
 };
 
 if (resetDataBtn) {
